@@ -12,10 +12,10 @@ model = YOLO(model='yolov8n.pt').to('cuda')
 root_dir = '/workspace/data/origin/non-ASD/HipOA'
 output_dir = '/workspace/data/resized/HipOA'
 
-# 信頼度スコアの閾値を設定（例: 0.5）
+# 信頼度スコアの閾値
 confidence_threshold = 0.5
 
-# 出力先ディレクトリを作成（存在しない場合）
+# 出力先ディレクトリを作成
 os.makedirs(output_dir, exist_ok=True)
 
 # 指定されたディレクトリで再帰的にfull_ap.mp4を探して処理
