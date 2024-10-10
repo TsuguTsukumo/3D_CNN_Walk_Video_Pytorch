@@ -1,82 +1,136 @@
-import cv2
-from ultralytics import YOLO
 import os
+import cv2
 import torch
+from ultralytics import YOLO
+import numpy as np
 
-# Ensure CUDA device is specified
-torch.cuda.set_device(1)
-# モデルをロード
-model = YOLO(model='yolov8n.pt').to('cuda')
+# YOLOv8モデルの読み込み
+model = YOLO('yolov8n.pt')  # 適切なモデルに置き換えてください
+model.to('cuda')
 
-# ディレクトリの設定
-root_dir = '/workspace/data/origin/non-ASD/HipOA'
-output_dir = '/workspace/data/resized/HipOA'
+# 検出結果からバウンディングボックスを取得し、人物のみを対象にする関数
+def get_bounding_box(results, view='front', conf_threshold=0.7):
+    target_bbox = None
+    print(f"検出数: {len(results)}")  # デバッグ: 検出されたオブジェクトの数を表示
+    
+    for det in results:
+        bbox = det.xyxy.cpu().numpy() if isinstance(det.xyxy, torch.Tensor) else det.xyxy
 
-# 信頼度スコアの閾値
-confidence_threshold = 0.5
+        if det.cls == 0 and det.conf >= conf_threshold:  # クラスID 0 ('person') かつ信頼度の閾値を確認
+            print(f"人物検出 - バウンディングボックス: {bbox}, 信頼度: {det.conf}")
 
-# 出力先ディレクトリを作成
-os.makedirs(output_dir, exist_ok=True)
+            # 左端の人物を選択するための条件
+            if view == 'front':
+                if target_bbox is None or bbox[0][0] < target_bbox[0][0]:  # bboxの0番目の要素を比較
+                    target_bbox = bbox
+            elif view == 'side':
+                if target_bbox is None:
+                    target_bbox = bbox
 
-# 指定されたディレクトリで再帰的にfull_ap.mp4を探して処理
-for subdir, _, files in os.walk(root_dir):
-    for file in files:
-        if file.lower() == 'full_ap.mp4':
-            video_path = os.path.join(subdir, file)
+    if target_bbox is None:
+        print(f"{view} で人物が検出されませんでした。")
+    
+    return target_bbox
 
-            # 出力動画のファイル名を「サブディレクトリ名 + full_ap.mp4」に設定
-            directory_name = os.path.basename(subdir)  # サブディレクトリ名を取得
-            output_video_path = os.path.join(output_dir, f'{directory_name}_full_ap.mp4')  # 保存ファイル名を作成
+# アスペクト比を維持しながら512×512のフレームにリサイズし、余白を黒で埋める関数
+def resize_with_aspect_ratio(frame, target_size=512):
+    h, w = frame.shape[:2]
 
-            # 既に同じファイルが存在する場合は処理をスキップ
-            if os.path.exists(output_video_path):
-                print(f"Skipping {output_video_path} (already exists)")
-                continue
+    # アスペクト比を計算
+    aspect_ratio = w / h
 
-            cap = cv2.VideoCapture(video_path)
+    # 新しいサイズを計算
+    if aspect_ratio > 1:
+        new_w = target_size
+        new_h = int(target_size / aspect_ratio)
+    else:
+        new_h = target_size
+        new_w = int(target_size * aspect_ratio)
 
-            # 出力動画の設定
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # MP4コーデック設定
-            fps = 30  # フレームレート設定
-            frame_size = (512, 512)  # リサイズ後のフレームサイズ
-            out = cv2.VideoWriter(output_video_path, fourcc, fps, frame_size)
+    resized_frame = cv2.resize(frame, (new_w, new_h))
 
-            while cap.isOpened():
-                ret, frame = cap.read()
-                if not ret:
-                    break
+    # 黒の背景を作成し、画像を中央に配置
+    output_frame = np.zeros((target_size, target_size, 3), dtype=np.uint8)
+    x_offset = (target_size - new_w) // 2
+    y_offset = (target_size - new_h) // 2
+    output_frame[y_offset:y_offset + new_h, x_offset:x_offset + new_w] = resized_frame
 
-                # 画像をモデルに渡して推論（人のみを検出対象にし、信頼度閾値を設定）
-                results = model(frame, classes=[0], conf=confidence_threshold)  # クラスID 0（人）のみを検出
+    return output_frame
 
-                # 検出結果を取得
-                detections = results[0].boxes
+# 2つの動画を処理して、それぞれの動画として保存する関数
+def process_videos(input_folder):
+    front_video_path = os.path.join(input_folder, 'full_ap.mp4')
+    side_video_path = os.path.join(input_folder, 'full_lat.mp4')
 
-                # 人のバウンディングボックスを保存するリスト
-                person_boxes = []
+    # 出力フォルダを入力フォルダに基づいて作成
+    output_folder = os.path.join(input_folder, 'cropped_output')
+    os.makedirs(output_folder, exist_ok=True)
 
-                for box in detections:
-                    x1, y1, x2, y2 = box.xyxy[0]
-                    conf = box.conf[0]
+    front_output_path = os.path.join(output_folder, 'full_ap.mp4')
+    side_output_path = os.path.join(output_folder, 'full_lat.mp4')
 
-                    # 信頼度が閾値以上のバウンディングボックスのみ使用
-                    if conf >= confidence_threshold:
-                        person_boxes.append([x1, y1, x2, y2])
+    # 動画を開く
+    front_cap = cv2.VideoCapture(front_video_path)
+    side_cap = cv2.VideoCapture(side_video_path)
 
-                # 人が検出された場合のみ処理
-                if person_boxes:
-                    # 左側に位置する人のバウンディングボックスを切り出す
-                    leftmost_box = min(person_boxes, key=lambda b: b[0])
-                    x1, y1, x2, y2 = map(int, leftmost_box)
-                    cropped_person = frame[y1:y2, x1:x2]
+    fps = int(front_cap.get(cv2.CAP_PROP_FPS))
 
-                    # 切り出した画像を512x512にリサイズ
-                    resized_person = cv2.resize(cropped_person, frame_size)
+    # 動画の書き込み設定
+    front_out = cv2.VideoWriter(front_output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (512, 512))
+    side_out = cv2.VideoWriter(side_output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (512, 512))
 
-                    # リサイズした画像を動画に追加
-                    out.write(resized_person)
+    while True:
+        ret1, front_frame = front_cap.read()
+        ret2, side_frame = side_cap.read()
 
-            # リソースの解放
-            cap.release()
-            out.release()
-            print(f"Processed: {output_video_path}")
+        if not ret1 or not ret2:
+            break
+
+        front_results_list = model(front_frame)
+        side_results_list = model(side_frame)
+
+        front_results = front_results_list[0]
+        side_results = side_results_list[0]
+
+        front_bbox = get_bounding_box(front_results.boxes, view='front', conf_threshold=0.5)
+        side_bbox = get_bounding_box(side_results.boxes, view='side', conf_threshold=0.5)
+
+        # 両方のビューで対象者が検出された場合に処理を行う
+        if front_bbox is not None and side_bbox is not None:
+            try:
+                # フレームの境界チェックを追加し、切り抜き範囲が画像サイズを超えないように修正
+                front_x1 = max(0, int(front_bbox[0][0]))
+                front_y1 = max(0, int(front_bbox[0][1]))
+                front_x2 = min(front_frame.shape[1], int(front_bbox[0][2]))
+                front_y2 = min(front_frame.shape[0], int(front_bbox[0][3]))
+
+                side_x1 = max(0, int(side_bbox[0][0]))
+                side_y1 = max(0, int(side_bbox[0][1]))
+                side_x2 = min(side_frame.shape[1], int(side_bbox[0][2]))
+                side_y2 = min(side_frame.shape[0], int(side_bbox[0][3]))
+
+                front_crop = front_frame[front_y1:front_y2, front_x1:front_x2]
+                side_crop = side_frame[side_y1:side_y2, side_x1:side_x2]
+
+                # アスペクト比を維持しながら512×512にリサイズ
+                front_resized = resize_with_aspect_ratio(front_crop, target_size=512)
+                side_resized = resize_with_aspect_ratio(side_crop, target_size=512)
+
+                # 切り抜かれたフレームをそれぞれ保存
+                front_out.write(front_resized)
+                side_out.write(side_resized)
+
+            except Exception as e:
+                print(f"切り抜きエラー: {e}")
+
+        else:
+            print("対象者がどちらかの動画に検出されなかったため、フレームをスキップします。")
+
+    front_cap.release()
+    side_cap.release()
+    front_out.release()
+    side_out.release()
+
+# 実行
+input_folder = '/workspace/project/new_prepare_video/data/ASD/for_test/20171211'  # 実際のフォルダパスに置き換えてください
+process_videos(input_folder)
