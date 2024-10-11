@@ -12,7 +12,7 @@ from utils.metrics import *
 
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
-import matplotlis.pyplot as plt 
+import matplotlib.pyplot as plt 
 import seaborn as sns
 
 # %%
