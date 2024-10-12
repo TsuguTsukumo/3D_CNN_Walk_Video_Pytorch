@@ -56,11 +56,19 @@ def process_videos(input_folder):
     front_video_path = os.path.join(input_folder, 'full_ap.mp4')
     side_video_path = os.path.join(input_folder, 'full_lat.mp4')
 
-    output_folder = os.path.join(input_folder, 'cropped_output')
+    out_folder = '/workspace/data'
+    output_folder = os.path.join(out_folder, 'LCS_cropped_by_yolov8_512')
     os.makedirs(output_folder, exist_ok=True)
+    print(os.path.basename(input_folder))
 
-    front_output_path = os.path.join(output_folder, 'full_ap.mp4')
-    side_output_path = os.path.join(output_folder, 'full_lat.mp4')
+    front_output_path   = os.path.join(output_folder, os.path.basename(input_folder))
+    side_output_path    = os.path.join(output_folder, os.path.basename(input_folder))
+    os.makedirs(front_output_path, exist_ok=True)
+    os.makedirs(side_output_path, exist_ok=True)
+    print(front_output_path)
+    front_output_path   = os.path.join(front_output_path, 'full_ap.mp4')
+    side_output_path    = os.path.join(side_output_path, 'full_lat.mp4')
+    print(front_output_path)
 
     front_cap = cv2.VideoCapture(front_video_path)
     side_cap = cv2.VideoCapture(side_video_path)
@@ -127,5 +135,5 @@ def process_all_videos_in_folder(root_folder):
             process_videos(folder_path)
 
 # 実行
-root_folder = '/workspace/data/origin/ASD'  # 実際のパスに置き換えてください
+root_folder = '/workspace/data/origin/non-ASD/LCS'
 process_all_videos_in_folder(root_folder)
