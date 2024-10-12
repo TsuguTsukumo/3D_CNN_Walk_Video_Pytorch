@@ -61,7 +61,7 @@ def get_parameters():
     parser.add_argument('--split_data_path', type=str,
                         default="/workspace/data/splt_dataset_512", help="split dataset path")
     #TODO: change this path
-    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/split_pad_dataset_512/",
+    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/data_for_poster/",
                         help="split and pad dataset with detection method.")
     parser.add_argument('--seg_data_path', type=str, default="/workspace/data/segmentation_dataset_512",
                         help="segmentation dataset with mediapipe, with 5 fold cross validation.")
