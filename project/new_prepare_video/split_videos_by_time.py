@@ -53,6 +53,6 @@ def split_video_by_time(input_folder, output_folder, split_duration=2):
                     cap.release()
 
 # 使い方
-input_folder = '/workspace/project/new_prepare_video/data/ASD/for_test/20171211/cropped_output'  # 入力動画が保存されているフォルダ
-output_folder = '/workspace/project/new_prepare_video/data/ASD/split_data'  # 分割された動画を保存するフォルダ
+input_folder     = '/workspace/data/split_pad_dataset_512/fold3/val/ASD_not'  # 入力動画が保存されているフォルダ
+output_folder    = '/workspace/data/split_pad_dataset_512/fold3/val/ASD_not'  # 分割された動画を保存するフォルダ
 split_video_by_time(input_folder, output_folder)
