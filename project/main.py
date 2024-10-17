@@ -56,11 +56,11 @@ def get_parameters():
     parser.add_argument('--beta1', type=float, default=0.5)
     parser.add_argument('--beta2', type=float, default=0.999)
 
-    #TODO:Path
+    #TODO:Path,　before detection
     parser.add_argument('--data_path', type=str, default="/workspace/data/data_for_poster/", help='meta dataset path')
     parser.add_argument('--split_data_path', type=str,
                         default="/workspace/data/splt_dataset_512", help="split dataset path")
-    #TODO: change this path
+    #TODO: change this path, after detection
     parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/data_for_poster/",
                         help="split and pad dataset with detection method.")
     parser.add_argument('--seg_data_path', type=str, default="/workspace/data/data_for_poster/",
