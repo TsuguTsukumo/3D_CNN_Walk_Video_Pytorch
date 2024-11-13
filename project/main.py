@@ -57,13 +57,13 @@ def get_parameters():
     parser.add_argument('--beta2', type=float, default=0.999)
 
     #TODO:Path,　before detection
-    parser.add_argument('--data_path', type=str, default="/workspace/data/data_for_poster/", help='meta dataset path')
-    parser.add_argument('--split_data_path', type=str,
-                        default="/workspace/data/splt_dataset_512", help="split dataset path")
+    parser.add_argument('--data_path', type=str, default="/workspace/data/test_side_and_front", help='meta dataset path')
+    parser.add_argument('--split_data_path', type=str)
+    
     #TODO: change this path, after detection
-    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/data_for_poster/",
+    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/test_side_and_front",
                         help="split and pad dataset with detection method.")
-    parser.add_argument('--seg_data_path', type=str, default="/workspace/data/data_for_poster/",
+    parser.add_argument('--seg_data_path', type=str, default="/workspace/data/test_side_and_front",
                         help="segmentation dataset with mediapipe, with 5 fold cross validation.")
 
     parser.add_argument('--log_path', type=str, default='./logs', help='the lightning logs saved path')
@@ -111,7 +111,7 @@ def train(hparams):
     # define the early stop.
     early_stopping = EarlyStopping(
         monitor='val_acc',
-        patience=5,
+        patience=7,
         mode='max',
     )
 
@@ -126,7 +126,7 @@ def train(hparams):
                       logger=tb_logger,
                       #   log_every_n_steps=100,
                       check_val_every_n_epoch=1,
-                      callbacks=[progress_bar, rich_model_summary, table_metrics_callback, monitor, model_check_point],
+                      callbacks=[progress_bar, rich_model_summary, table_metrics_callback, monitor, model_check_point, early_stopping],
                       #   deterministic=True
                       )
 

@@ -7,7 +7,7 @@ import numpy as np
 # ディレクトリのパスを指定
 asd_dir = '/workspace/data/data_for_poster/raw_data'
 not_asd_dir = '/workspace/data/data_for_poster/raw_data/ASD_not'
-output_dir = 'workspace/data/data_for_poster'
+output_dir = 'workspace/data/data_for_poster_retry'
 
 # full_ap.mp4 のパスと動画の長さを取得する関数
 def get_video_paths_and_durations(data_dir, label, disease_name=None):
@@ -46,13 +46,18 @@ durations = np.array(asd_durations + not_asd_durations)
 labels = np.array([1] * len(asd_video_paths) + [0] * len(not_asd_video_paths))
 
 # 動画時間を考慮して4:1に分割する関数
+# 動画時間を考慮して4:1に分割する関数
+# 動画時間を考慮して4:1に分割する関数
+# 動画時間を考慮して4:1に分割する関数
 def time_and_count_based_split(video_paths, durations, labels, n_splits=5):
     kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
     splits = []
 
-    for train_idx, val_idx in kf.split(video_paths, labels):
-        train_paths, val_paths = [video_paths[i] for i in train_idx], [video_paths[i] for i in val_idx]
-        train_durations, val_durations = durations[train_idx], durations[val_idx]
+    for fold_num, (train_idx, val_idx) in enumerate(kf.split(video_paths, labels)):
+        train_paths = [video_paths[i] for i in train_idx]
+        val_paths = [video_paths[i] for i in val_idx]
+        train_durations = durations[train_idx]
+        val_durations = durations[val_idx]
 
         # 時間の比率を調整する
         target_ratio = 4 / (4 + 1)  # 4:1の目標比率
@@ -63,11 +68,13 @@ def time_and_count_based_split(video_paths, durations, labels, n_splits=5):
         current_ratio = val_total_duration / (train_total_duration + val_total_duration)
         
         # 動画時間比率が4:1に近づくように調整
-        while current_ratio > (1 - target_ratio):
+        while current_ratio > (1 - target_ratio) and len(val_paths) > 0:
             # 検証セットからトレーニングセットへ動画を移動
             max_val_idx = np.argmax(val_durations)  # 最も長い動画を選択
-            train_paths.append(val_paths[max_val_idx])
+            train_paths.append(val_paths[max_val_idx])  # トレーニングに移動
             train_durations = np.append(train_durations, val_durations[max_val_idx])
+
+            # バリデーションセットから削除
             val_paths.pop(max_val_idx)
             val_durations = np.delete(val_durations, max_val_idx)
 
@@ -76,9 +83,17 @@ def time_and_count_based_split(video_paths, durations, labels, n_splits=5):
             val_total_duration = np.sum(val_durations)
             current_ratio = val_total_duration / (train_total_duration + val_total_duration)
 
+        # 各フォールドの時間比率を表示
+        print(f"Fold {fold_num + 1}:")
+        print(f"  Train total duration: {train_total_duration:.2f} seconds")
+        print(f"  Val total duration: {val_total_duration:.2f} seconds")
+        print(f"  Ratio (Val/Total): {current_ratio:.2f}")
+
         splits.append((train_paths, val_paths))
     
     return splits
+
+
 
 # データをコピーする関数
 def save_split_data(split, fold_num):
