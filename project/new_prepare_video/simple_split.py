@@ -2,9 +2,9 @@ import cv2
 import os
 
 # 動画ファイルが保存されているフォルダのパス
-input_folder = 'workspace/data/test_side_and_front/fold0/val/ASD_not'
+input_folder = '/workspace/data/data/new_data_cropped_cross_validation/temp/2_1'
 # 分割した動画を保存するフォルダのパス
-output_folder = '/workspace/data/Test_1_only_side_error/fold0/val/ASD_not'
+output_folder = '/workspace/data/data/new_data_cropped_cross_validation/temp'
 
 # 出力フォルダが存在しない場合は作成
 os.makedirs(output_folder, exist_ok=True)

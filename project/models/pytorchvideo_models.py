@@ -14,6 +14,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 import matplotlib.pyplot as plt 
 import seaborn as sns
+import torchmetrics
 
 # %%
 
@@ -76,6 +77,7 @@ class WalkVideoClassificationLightningModule(LightningModule):
         self._accuracy = get_Accuracy(self.num_class)
         self._precision = get_Precision(self.num_class)
         self._confusion_matrix = get_Confusion_Matrix()
+        self.f1_score = torchmetrics.F1Score(task="binary", num_classes=self.num_class)
 
         # self.dice = get_Dice()
         # self.average_precision = get_Average_precision(self.num_class)
@@ -193,8 +195,9 @@ class WalkVideoClassificationLightningModule(LightningModule):
 
         confusion_matrix = self._confusion_matrix(preds_sigmoid, label)
 
+        val_f1 = self.f1_score(preds_sigmoid, label)
         # log the val loss and val acc, in step and in epoch.
-        self.log_dict({'val_loss': val_loss, 'val_acc': accuracy, 'val_precision': precision}, on_step=False, on_epoch=True)
+        self.log_dict({'val_f1:': val_f1, 'val_loss': val_loss, 'val_acc': accuracy, 'val_precision': precision}, on_step=False, on_epoch=True)
         
         return accuracy
 

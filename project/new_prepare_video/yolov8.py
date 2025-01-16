@@ -10,8 +10,9 @@ model.to('cuda')
 # 検出結果からバウンディングボックスを取得し、人物のみを対象にする関数
 def get_bounding_box(results, view='front', conf_threshold=0.7):
     target_bbox = None
+    max_conf = -1  # side用の信頼度管理変数
     print(f"検出数: {len(results)}")
-    
+
     for det in results:
         bbox = det.xyxy.cpu().numpy() if isinstance(det.xyxy, torch.Tensor) else det.xyxy
 
@@ -19,11 +20,14 @@ def get_bounding_box(results, view='front', conf_threshold=0.7):
             print(f"人物検出 - バウンディングボックス: {bbox}, 信頼度: {det.conf}")
 
             if view == 'front':
+                # frontでは左端に最も近い人物を選択
                 if target_bbox is None or bbox[0][0] < target_bbox[0][0]:
                     target_bbox = bbox
             elif view == 'side':
-                if target_bbox is None:
+                # sideでは最も信頼度の高い人物を選択
+                if det.conf > max_conf:
                     target_bbox = bbox
+                    max_conf = det.conf
 
     if target_bbox is None:
         print(f"{view} で人物が検出されませんでした。")
@@ -56,8 +60,8 @@ def process_videos(input_folder):
     front_video_path = os.path.join(input_folder, 'full_ap.mp4')
     side_video_path = os.path.join(input_folder, 'full_lat.mp4')
 
-    out_folder = '/workspace/data'
-    output_folder = os.path.join(out_folder, 'LCS_cropped_by_yolov8_512')
+    out_folder = '/workspace/data/data/new_data_selected_cropped/non_ASD'
+    output_folder = os.path.join(out_folder, 'Normal')
     os.makedirs(output_folder, exist_ok=True)
     print(os.path.basename(input_folder))
 
@@ -135,5 +139,5 @@ def process_all_videos_in_folder(root_folder):
             process_videos(folder_path)
 
 # 実行
-root_folder = '/workspace/data/origin/non-ASD/LCS'
+root_folder = '/workspace/data/data/new_data_selected/non_ASD/Normal'
 process_all_videos_in_folder(root_folder)

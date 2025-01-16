@@ -57,13 +57,13 @@ def get_parameters():
     parser.add_argument('--beta2', type=float, default=0.999)
 
     #TODO:Path,　before detection
-    parser.add_argument('--data_path', type=str, default="/workspace/data/test_side_and_front", help='meta dataset path')
+    parser.add_argument('--data_path', type=str, default="/workspace/data/data/new_data_cropped_cross_validation", help='meta dataset path')
     parser.add_argument('--split_data_path', type=str)
     
     #TODO: change this path, after detection
-    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/test_side_and_front",
+    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/data/new_data_cropped_cross_validation",
                         help="split and pad dataset with detection method.")
-    parser.add_argument('--seg_data_path', type=str, default="/workspace/data/test_side_and_front",
+    parser.add_argument('--seg_data_path', type=str, default="/workspace/data/data/new_data_cropped_cross_validation",
                         help="segmentation dataset with mediapipe, with 5 fold cross validation.")
 
     parser.add_argument('--log_path', type=str, default='./logs', help='the lightning logs saved path')
@@ -94,7 +94,7 @@ def train(hparams):
 
     # some callbacks
     progress_bar = TQDMProgressBar(refresh_rate=100)
-    rich_model_summary = RichModelSummary(max_depth=2)
+    rich_model_summary = RichModelSummary(d=2)
     rich_progress_bar = RichProgressBar(refresh_rate=hparams.batch_size)
 
     # define the checkpoint becavier.
@@ -111,12 +111,12 @@ def train(hparams):
     # define the early stop.
     early_stopping = EarlyStopping(
         monitor='val_acc',
-        patience=7,
+        patience=3,
         mode='max',
     )
 
     # bolts callbacks
-    table_metrics_callback = PrintTableMetricsCallback()
+    # table_metrics_callback = PrintTableMetricsCallback()
     monitor = TrainingDataMonitor(log_every_n_steps=50)
 
     trainer = Trainer(
@@ -126,7 +126,7 @@ def train(hparams):
                       logger=tb_logger,
                       #   log_every_n_steps=100,
                       check_val_every_n_epoch=1,
-                      callbacks=[progress_bar, rich_model_summary, table_metrics_callback, monitor, model_check_point, early_stopping],
+                      callbacks=[progress_bar, rich_model_summary, monitor, model_check_point, early_stopping],
                       #   deterministic=True
                       )
 

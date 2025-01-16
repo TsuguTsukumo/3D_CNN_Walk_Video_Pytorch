@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/workspace/Walk_Video_PyTorch/project/utils')
+sys.path.append('/workspace/project/project/utils')
 
 from. metrics import *
 from utils import *
