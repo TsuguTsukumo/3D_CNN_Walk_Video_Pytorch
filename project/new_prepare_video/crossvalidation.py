@@ -1,58 +1,68 @@
-import os
-import random
-import shutil
-from moviepy.editor import VideoFileClip
-from sklearn.model_selection import KFold
+import json
+from sklearn.model_selection import train_test_split
 
-def get_video_metadata(folder_path):
-    videos = []
-    for label in ['ASD', 'ASD_not']:
-        label_path = os.path.join(folder_path, label)
-        for file in os.listdir(label_path):
-            if file.endswith('.mp4'):
-                file_path = os.path.join(label_path, file)
-                try:
-                    with VideoFileClip(file_path) as video:
-                        duration = video.duration
-                        videos.append({
-                            "file_path": file_path,
-                            "duration": duration,
-                            "label": label
-                        })
-                except Exception as e:
-                    print(f"Could not process {file_path}: {e}")
-    return videos
+# JSONファイルのパス
+json_file_path = "/workspace/data/data/Combined_video/dataset_info.json"
 
-def save_split_videos(videos, output_folder, n_splits=5):
-    random.shuffle(videos)
-    kf = KFold(n_splits=n_splits, shuffle=True, random_state=42)
-    
-    for fold, (train_idx, val_idx) in enumerate(kf.split(videos)):
-        train_videos = [videos[i] for i in train_idx]
-        val_videos = [videos[i] for i in val_idx]
-        
-        fold_output_path = os.path.join(output_folder, f'fold{fold}')
-        train_output_path = os.path.join(fold_output_path, 'train')
-        val_output_path = os.path.join(fold_output_path, 'val')
-        
-        for path in [train_output_path, val_output_path]:
-            os.makedirs(os.path.join(path, 'ASD'), exist_ok=True)
-            os.makedirs(os.path.join(path, 'ASD_not'), exist_ok=True)
-        
-        save_videos(train_videos, train_output_path, "Train")
-        save_videos(val_videos, val_output_path, "Validation")
+# JSONデータを読み込む
+with open(json_file_path, "r") as f:
+    data = json.load(f)
 
-def save_videos(video_list, destination, set_type):
-    total_duration = 0
-    for video in video_list:
-        total_duration += video['duration']
-        dest_folder = os.path.join(destination, video['label'])
-        shutil.copy(video['file_path'], dest_folder)
-    print(f"{set_type} set: {len(video_list)} videos, Total duration: {total_duration:.2f} seconds")
+# 出力用ディレクトリとファイル名
+output_file_path = "/workspace/data/data/Combined_video/split_results.json"
 
-# メイン処理
-input_folder_path = "/workspace/data/data/new_data_selected_cropped copy"  # 入力ディレクトリ
-output_folder_path = "/workspace/data/data/new_data_cropped_cross_validation"  # 出力ディレクトリ
+# 各カテゴリごとにトレーニング・検証セットを分割
+def create_split(random_seed):
+    train_data = []
+    valid_data = []
+    category_totals = {}  # 各カテゴリの合計時間と人数を記録する辞書
 
-videos = get_video_metadata(input_folder_path)
-save_split_videos(videos, output_folder_path, n_splits=5)
+    for category, people in data.items():
+        # カテゴリ内のデータをリスト化
+        category_data = [
+            {"category": category, "person_id": person_id, "total_time": info["total_time"]}
+            for person_id, info in people.items()
+        ]
+        # 4:1の比率で分割 (ランダムシードを使用)
+        category_train, category_valid = train_test_split(
+            category_data, test_size=0.2, random_state=random_seed
+        )
+        train_data.extend(category_train)
+        valid_data.extend(category_valid)
+        # カテゴリごとの合計時間と人数を計算
+        category_totals[category] = {
+            "total_time": sum(item["total_time"] for item in category_data),
+            "total_people": len(category_data),
+        }
+
+    # 合計時間と合計人数を計算
+    def calculate_totals(data):
+        total_time = sum(item["total_time"] for item in data)
+        total_people = len(data)
+        return total_time, total_people
+
+    train_total_time, train_total_people = calculate_totals(train_data)
+    valid_total_time, valid_total_people = calculate_totals(valid_data)
+
+    return {
+        "train_data": train_data,
+        "valid_data": valid_data,
+        "train_total_time": train_total_time,
+        "train_total_people": train_total_people,
+        "valid_total_time": valid_total_time,
+        "valid_total_people": valid_total_people,
+        "category_totals": category_totals,
+    }
+
+# 5つの異なる分割パターンを作成
+splits = []
+for i in range(1, 6):
+    splits.append(create_split(random_seed=i))
+
+# 結果をJSONファイルとして保存
+output_data = {f"Split_{idx+1}": split for idx, split in enumerate(splits)}
+with open(output_file_path, "w") as f:
+    json.dump(output_data, f, indent=4)
+
+# 保存完了メッセージ
+print(f"分割結果を {output_file_path} に保存しました！")

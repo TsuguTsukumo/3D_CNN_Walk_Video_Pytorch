@@ -14,7 +14,7 @@ def generate_dataset_json(root_dir):
     dataset = {}
 
     # 疾患Aと疾患Bのディレクトリを取得
-    for disease in ["LCS", 'HipOA']:
+    for disease in ["LCS", 'HipOA', 'ASD', 'DHS']:
         disease_dir = os.path.join(root_dir, disease)
         disease_data = {}
 
@@ -52,5 +52,5 @@ root_dir = "/workspace/data/data/Combined_video"
 dataset_json = generate_dataset_json(root_dir)
 
 # JSONをファイルに保存
-with open("/workspace/data/data/dataset_info.json", "w", encoding="utf-8") as f:
+with open("/workspace/data/data/Combined_video/dataset_info.json", "w", encoding="utf-8") as f:
     json.dump(dataset_json, f, ensure_ascii=False, indent=4)
