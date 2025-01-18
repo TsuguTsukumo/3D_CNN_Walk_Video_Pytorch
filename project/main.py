@@ -57,13 +57,13 @@ def get_parameters():
     parser.add_argument('--beta2', type=float, default=0.999)
 
     #TODO:Path,　before detection
-    parser.add_argument('--data_path', type=str, default="/workspace/data/data/new_data_cropped_cross_validation", help='meta dataset path')
+    parser.add_argument('--data_path', type=str, default="/workspace/data/data/chensan_data", help='meta dataset path')
     parser.add_argument('--split_data_path', type=str)
     
     #TODO: change this path, after detection
-    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/data/new_data_cropped_cross_validation",
+    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/data/chensan_data",
                         help="split and pad dataset with detection method.")
-    parser.add_argument('--seg_data_path', type=str, default="/workspace/data/data/new_data_cropped_cross_validation",
+    parser.add_argument('--seg_data_path', type=str, default="/workspace/data/data/chensan_data",
                         help="segmentation dataset with mediapipe, with 5 fold cross validation.")
 
     parser.add_argument('--log_path', type=str, default='./logs', help='the lightning logs saved path')
@@ -94,7 +94,7 @@ def train(hparams):
 
     # some callbacks
     progress_bar = TQDMProgressBar(refresh_rate=100)
-    rich_model_summary = RichModelSummary(d=2)
+    rich_model_summary = RichModelSummary(max_depth=2)
     rich_progress_bar = RichProgressBar(refresh_rate=hparams.batch_size)
 
     # define the checkpoint becavier.
@@ -104,8 +104,7 @@ def train(hparams):
         monitor="val_acc",
         mode="max",
         save_last=True,
-        save_top_k=3,
-
+        save_top_k=1,
     )
 
     # define the early stop.

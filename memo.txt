@@ -1,4 +1,19 @@
 <tree command in Linux>
 pwd;find . | sort | sed '1d;s/^\.//;s/\/\([^/]*\)$/|--\1/;s/\/[^/|]*/|  /g'
 
+<Git>
+git add . 
+git commit -m "Initial commit" 
+git push -u origin main
 
+<Actiivate vnev>
+source /workspace/project/.venv/bin/activate
+
+<Training>
+python project/main.py --version test_save_k --model resnet --model_depth 50 --clip_duration 1  --num_workers 8 --transfor_learning True --pre_process_flag True
+
+<Tensorboard>
+tensorboard --logdir=/workspace/project/logs/resnet/2025_1_18_resnet_depth50/fold0
+
+<tmux>
+tmux kill-session -t session_num
