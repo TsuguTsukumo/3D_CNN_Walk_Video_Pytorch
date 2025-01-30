@@ -40,7 +40,7 @@ class MakeVideoModule(nn.Module):
         
         else:
             CSN = csn.create_csn(
-            input_channel=3,
+            input_channel=6,
             model_depth=self.model_depth,
             model_num_class=self.model_class_num,
             norm=nn.BatchNorm3d,
@@ -60,7 +60,7 @@ class MakeVideoModule(nn.Module):
         
         else:
             model = r2plus1d.create_r2plus1d(
-                input_channel=3,
+                input_channel=6,
                 model_depth=self.model_depth,
                 model_num_class=self.model_class_num,
                 norm=nn.BatchNorm3d,
@@ -99,7 +99,7 @@ class MakeVideoModule(nn.Module):
 
         else:
             model = x3d.create_x3d(
-                input_channel=3, 
+                input_channel=6, 
                 input_clip_length=16,
                 input_crop_size=224,
                 model_num_class=1,
@@ -119,7 +119,7 @@ class MakeVideoModule(nn.Module):
         else:
 
             model = slowfast.create_slowfast(
-                input_channels=3,
+                input_channels=6,
                 model_depth=self.model_depth,
                 model_num_class=self.model_class_num,
                 norm=nn.BatchNorm3d,
@@ -135,36 +135,37 @@ class MakeVideoModule(nn.Module):
         if self.transfor_learning:
             slow = torch.hub.load('facebookresearch/pytorchvideo', 'slow_r50', pretrained=True)
             
+            slow.blocks[0].conv = nn.Conv3d(in_channels=6, out_channels=64, kernel_size=(1, 7, 7), stride=(1, 2, 2), padding=(0, 3, 3))
             # change the knetics-400 output 400 to model class num
             slow.blocks[-1].proj = nn.Linear(2048, self.model_class_num)
 
-            model_stem = slow.blocks[0]
-            model_head = slow.blocks[-1]
-            model_stage = slow.blocks[1:-1]
+            # model_stem = slow.blocks[0]
+            # model_head = slow.blocks[-1]
+            # model_stage = slow.blocks[1:-1]
 
-            # ablation expermentional
+            # # ablation expermentional
 
-            # first make sure all param to false 
-            self.set_parameter_requires_grad(slow, False)
+            # # first make sure all param to false 
+            # self.set_parameter_requires_grad(slow, False)
 
-            if self.fix_layer == 'all':
-                # train all param
-                self.set_parameter_requires_grad(slow, True)
-            elif self.fix_layer == 'head':
-                # train model head, fix other
-                self.set_parameter_requires_grad(model_head, True)
-            elif self.fix_layer == 'stem_head':
-                # train model head and stem, fix other
-                self.set_parameter_requires_grad(model_head, True)
-                self.set_parameter_requires_grad(model_stem, True)
-            elif self.fix_layer == 'stage_head':
-                # train model stage and head, fix stem
-                self.set_parameter_requires_grad(model_stage, True)
-                self.set_parameter_requires_grad(model_head, True)
+            # if self.fix_layer == 'all':
+            #     # train all param
+            #     self.set_parameter_requires_grad(slow, True)
+            # elif self.fix_layer == 'head':
+            #     # train model head, fix other
+            #     self.set_parameter_requires_grad(model_head, True)
+            # elif self.fix_layer == 'stem_head':
+            #     # train model head and stem, fix other
+            #     self.set_parameter_requires_grad(model_head, True)
+            #     self.set_parameter_requires_grad(model_stem, True)
+            # elif self.fix_layer == 'stage_head':
+            #     # train model stage and head, fix stem
+            #     self.set_parameter_requires_grad(model_stage, True)
+            #     self.set_parameter_requires_grad(model_head, True)
 
         else:
             slow = resnet.create_resnet(
-                input_channel=3,
+                input_channel=6,
                 model_depth=self.model_depth,
                 model_num_class=self.model_class_num,
                 norm=nn.BatchNorm3d,
@@ -173,6 +174,7 @@ class MakeVideoModule(nn.Module):
 
         return slow
 
+# ! below is compare experiment.
 # %%
 class single_frame(nn.Module):
 

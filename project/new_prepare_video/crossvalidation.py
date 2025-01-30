@@ -2,14 +2,14 @@ import json
 from sklearn.model_selection import train_test_split
 
 # JSONファイルのパス
-json_file_path = "/workspace/data/data/Combined_video/dataset_info.json"
+json_file_path = "/workspace/data/Video/Segment_video_ASDandNormal/dataset_info.json"
 
 # JSONデータを読み込む
 with open(json_file_path, "r") as f:
     data = json.load(f)
 
 # 出力用ディレクトリとファイル名
-output_file_path = "/workspace/data/data/Combined_video/split_results.json"
+output_file_path = "/workspace/data/Video/Segment_video_ASDandNormal/split_results.json"
 
 # 各カテゴリごとにトレーニング・検証セットを分割
 def create_split(random_seed):

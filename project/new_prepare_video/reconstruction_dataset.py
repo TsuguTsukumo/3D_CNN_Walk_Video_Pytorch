@@ -64,7 +64,7 @@ def restructure_dataset(root_dir, out_dir):
 
 
 # 使用例
-root_dir = "/workspace/data/data/Combined_video_by_json" # 入力データセットのルートディレクトリ
-out_dir = "/workspace/data/data/Cross_Validation/ex_20250116_2nd"    # 出力先ディレクトリ
+root_dir = "/workspace/data/Cross_Validation/ex_20250122_preset_lat" # 入力データセットのルートディレクトリ
+out_dir = "/workspace/data/Cross_Validation/ex_20250122_pre_lat"    # 出力先ディレクトリ
 
 restructure_dataset(root_dir, out_dir)

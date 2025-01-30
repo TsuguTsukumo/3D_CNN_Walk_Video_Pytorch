@@ -22,5 +22,5 @@ def rename_files(root_dir):
                 print(f'Renamed: {old_file} -> {new_file}')
 
 # 使用例
-root_directory = '/workspace/data/data/TEST_LCS_10_selected'  # データセットのルートディレクトリ
+root_directory = '/workspace/data/Video/Segment_video/TEST_Normal_9_selected'  # データセットのルートディレクトリ
 rename_files(root_directory)

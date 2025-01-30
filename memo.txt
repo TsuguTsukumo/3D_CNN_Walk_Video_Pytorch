@@ -6,14 +6,16 @@ git add .
 git commit -m "Initial commit" 
 git push -u origin main
 
-<Actiivate vnev>
-source /workspace/project/.venv/bin/activate
+<Actiivate vensv>
+source /workspace/.venv/bin/activate
 
 <Training>
-python project/main.py --version test_save_k --model resnet --model_depth 50 --clip_duration 1  --num_workers 8 --transfor_learning True --pre_process_flag True
+python project/main.py --version 20250130_2stream --model resnet --model_depth 50 --clip_duration 1  --num_workers 8 --transfor_learning True --pre_process_flag True --gpu_num 0
 
 <Tensorboard>
-tensorboard --logdir=/workspace/project/logs/resnet/2025_1_18_resnet_depth50/fold0
-
+tensorboard --logdir=/workspace/logs/resnet/20250130_2stream_resnet_depth50/fold0
 <tmux>
 tmux kill-session -t session_num
+
+<Docker>
+docker run -itd -v /mnt/dataset/tsukumo/data:/workspace/data -v /home/tsukumo/Two_Stream_Walk_Video_PyTorch/:/workspace --gpus all --name two_stream_walk_video_pytorch_tsukumo --shm-size 32g --ipc host pytorchlightning/pytorch_lightning:base-cuda-py3.9-torch1.12-cuda11.6.1 bash

@@ -12,7 +12,7 @@ model:
 
   # Training setting
   max_epochs: 50 # numer of epochs of training
-  batch_size: 8 # batch size for the dataloader
+  batch_size: 16 # batch size for the dataloader
   num_workers: 8 # dataloader for load video
   clip_duration: 1 # clip duration for the video
   uniform_temporal_subsample_num: 8 # num frame from the clip duration

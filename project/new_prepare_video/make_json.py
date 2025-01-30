@@ -13,12 +13,12 @@ def get_video_duration_and_fps(video_path):
 def generate_dataset_json(root_dir):
     dataset = {}
 
-    # 疾患Aと疾患Bのディレクトリを取得
-    for disease in ["LCS", 'HipOA', 'ASD', 'DHS']:
+    # 疾患カテゴリのディレクトリを取得
+    for disease in ["ASD", "Normal"]:
         disease_dir = os.path.join(root_dir, disease)
         disease_data = {}
 
-        # 各日付ごとに処理
+        # 日付ごとに処理
         for date in os.listdir(disease_dir):
             date_dir = os.path.join(disease_dir, date)
             if os.path.isdir(date_dir):
@@ -28,7 +28,7 @@ def generate_dataset_json(root_dir):
 
                 # 各セグメントごとに処理
                 for segment in os.listdir(date_dir):
-                    if segment.endswith("_combined.mp4"):
+                    if segment.endswith(".mp4"):  # mp4ファイルを全て対象に
                         total_segment_number += 1
                         video_path = os.path.join(date_dir, segment)
                         duration, segment_fps = get_video_duration_and_fps(video_path)
@@ -47,10 +47,12 @@ def generate_dataset_json(root_dir):
 
     return dataset
 
+
+
 # データセットのパスを指定
-root_dir = "/workspace/data/data/Combined_video"
+root_dir = "/workspace/data/Video/Segment_video_ASDandNormal_ap"
 dataset_json = generate_dataset_json(root_dir)
 
 # JSONをファイルに保存
-with open("/workspace/data/data/Combined_video/dataset_info.json", "w", encoding="utf-8") as f:
+with open("/workspace/data/Video/Segment_video_ASDandNormal/dataset_info.json", "w", encoding="utf-8") as f:
     json.dump(dataset_json, f, ensure_ascii=False, indent=4)

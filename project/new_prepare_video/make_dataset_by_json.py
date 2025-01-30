@@ -3,14 +3,14 @@ import shutil
 import json
 import random
 
-# 入力データセットの構造
-root_dir = "/workspace/data/data/Combined_video"
+# 入力データセット
+root_dir = "/workspace/data/Video/Segment_video_ASDandNormal_lat"
 
 # JSONファイルのパス
-split_json_file_path = "/workspace/data/data/Combined_video/split_results.json"
+split_json_file_path = "/workspace/data/Video/Segment_video_ASDandNormal/split_results.json"
 
 # 出力ディレクトリ
-output_root_dir = "/workspace/data/data/Combined_video_by_json_4th"
+output_root_dir = "/workspace/data/Cross_Validation/ex_20250122_preset_lat"
 
 # JSONファイルを読み込み
 with open(split_json_file_path, "r") as f:
@@ -54,7 +54,7 @@ def create_folds():
         fold_number = int(split_name.split('_')[-1])  # Split_1 -> 1
         
         # トレーニングセットと検証セットのフォルダを作成
-        for split_type in ["train", "val"]:
+        for split_type in ["train", "valid"]:
             # 対応するデータを取得（train または valid）
             split_type_data = split_data[split_type + "_data"]
             

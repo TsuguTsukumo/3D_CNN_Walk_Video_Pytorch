@@ -72,6 +72,6 @@ def process_videos(input_dir, output_dir):
             print(f"セグメントを処理しました: {segment_path} -> {output_segment_path}")
 
 # 使用例
-input_dir = "/workspace/data/data/TEST_LCS_7"  # 元の動画フォルダ
-output_dir = "/workspace/data/data/TEST_LCS_10_selected"  # 処理後の保存先
+input_dir = "/workspace/data/TEST_Normal_9"  # 元の動画フォルダ
+output_dir = "/workspace/data/TEST_Normal_9_selected"  # 処理後の保存先
 process_videos(input_dir, output_dir)

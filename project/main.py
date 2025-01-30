@@ -35,7 +35,7 @@ def get_parameters():
 
     # Training setting
     parser.add_argument('--max_epochs', type=int, default=50, help='numer of epochs of training')
-    parser.add_argument('--batch_size', type=int, default=8, help='batch size for the dataloader')
+    parser.add_argument('--batch_size', type=int, default=16, help='batch size for the dataloader')
     parser.add_argument('--num_workers', type=int, default=8, help='dataloader for load video')
     parser.add_argument('--clip_duration', type=int, default=1, help='clip duration for the video')
     parser.add_argument('--uniform_temporal_subsample_num', type=int,
@@ -45,8 +45,7 @@ def get_parameters():
     # ablation experment 
     # different fusion method 
     parser.add_argument('--fusion_method', type=str, default='slow_fusion', choices=['single_frame', 'early_fusion', 'late_fusion', 'slow_fusion'], help="select the different fusion method from ['single_frame', 'early_fusion', 'late_fusion']")
-    # pre process flag
-    parser.add_argument('--pre_process_flag', action='store_true', help='if use the pre process video, which detection.')
+    
     # Transfor_learning
     parser.add_argument('--transfor_learning', action='store_true', help='if use the transformer learning')
     parser.add_argument('--fix_layer', type=str, default='all', choices=['all', 'head', 'stem_head', 'stage_head'], help="select the ablation study within the choices ['all', 'head', 'stem_head', 'stage_head'].")
@@ -57,13 +56,15 @@ def get_parameters():
     parser.add_argument('--beta2', type=float, default=0.999)
 
     #TODO:Path,　before detection
-    parser.add_argument('--data_path', type=str, default="/workspace/data/data/chensan_data", help='meta dataset path')
+    parser.add_argument('--data_path_a', type=str, default="/workspace/data/Cross_Validation/ex_20250116_ap_organized", help='meta dataset path')
+    parser.add_argument('--data_path_b', type=str, default="/workspace/data/Cross_Validation/ex_20250116_lat_organized", help='meta dataset path')
+    
     parser.add_argument('--split_data_path', type=str)
     
     #TODO: change this path, after detection
-    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/data/chensan_data",
+    parser.add_argument('--split_pad_data_path', type=str, default="/workspace/data/Cross_Validation/ex_20250122_lat",
                         help="split and pad dataset with detection method.")
-    parser.add_argument('--seg_data_path', type=str, default="/workspace/data/data/chensan_data",
+    parser.add_argument('--seg_data_path', type=str, default="/workspace/data/Cross_Validation/ex_20250122_lat",
                         help="segmentation dataset with mediapipe, with 5 fold cross validation.")
 
     parser.add_argument('--log_path', type=str, default='./logs', help='the lightning logs saved path')
@@ -116,7 +117,7 @@ def train(hparams):
 
     # bolts callbacks
     # table_metrics_callback = PrintTableMetricsCallback()
-    monitor = TrainingDataMonitor(log_every_n_steps=50)
+    monitor = TrainingDataMonitor(log_every_n_steps=25)
 
     trainer = Trainer(
                       devices=[hparams.gpu_num,],
@@ -156,25 +157,26 @@ if __name__ == '__main__':
     # K Fold CV
     #############
 
-    if config.pre_process_flag:
-        DATA_PATH = config.split_pad_data_path
-        # DATA_PATH = config.seg_data_path
-    else:
-        DATA_PATH = config.data_path
+    DATA_PATH_A = config.data_path_a
+    DATA_PATH_B = config.data_path_b
+    
+    # DATA_PATH = config.seg_data_path
 
     # get the fold number
-    print("DATA_PATH:", DATA_PATH)
-    fold_num = os.listdir(DATA_PATH)
-    print("fold_num:", fold_num)
-    fold_num.sort()
-    
-    if 'raw' in fold_num:
-        fold_num.remove('raw')
+    print("DATA_PATH_A:", DATA_PATH_A)
+    fold_num_a = os.listdir(DATA_PATH_A)
+    print("DATA_PATH_B:", DATA_PATH_B)
+    fold_num_b = os.listdir(DATA_PATH_B)
+    fold_num_a.sort()
+    fold_num_b.sort()
+    print("fold_num_a:", fold_num_a)
+    print("fold_num_b:", fold_num_b)
 
+    
     store_Acc_Dict = {}
     sum_list = []
 
-    for fold in fold_num:
+    for fold in fold_num_a:
         #################
         # start k Fold CV
         #################
@@ -183,7 +185,8 @@ if __name__ == '__main__':
         print('Strat %s' % fold)
         print('#' * 50)
 
-        config.train_path = os.path.join(DATA_PATH, fold)
+        config.train_path_a = os.path.join(DATA_PATH_A, fold)
+        config.train_path_b = os.path.join(DATA_PATH_B, fold)
         config.fold = fold
 
         # connect the version + model + depth, for tensorboard logger.

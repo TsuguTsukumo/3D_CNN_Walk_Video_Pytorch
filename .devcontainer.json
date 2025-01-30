@@ -1,0 +1,10 @@
+{
+    "name": "Two Stream Walk Video Project",
+    "image": "pytorchlightning/pytorch_lightning:base-cuda-py3.9-torch1.12-cuda11.6.1",
+    "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-pyright.pyright",
+        "ms-vscode.cpptools"
+    ]
+}

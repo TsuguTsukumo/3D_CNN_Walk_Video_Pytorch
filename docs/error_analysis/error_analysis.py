@@ -27,7 +27,7 @@ import torch.nn.functional as F
 import os 
 import sys
 
-sys.path.append('/workspace/Walk_Video_PyTorch/project')
+sys.path.append('/workspace/project')
 
 from models.pytorchvideo_models import WalkVideoClassificationLightningModule
 from dataloader.data_loader import WalkDataModule
@@ -73,17 +73,18 @@ class opt:
 
     transfor_learning = True
     pre_process_flag = True
-    split_pad_data_path = '/workspace/data/split_pad_dataset_512'
+    split_pad_data_path = '/workspace/data/Cross_Validation/ex_20250116_combined'
 
 # DATA_PATH = "/workspace/data/segmentation_dataset_512"
-DATA_PATH = "/workspace/data/split_pad_dataset_512"
+DATA_PATH = "/workspace/data/Cross_Validation/ex_20250116_combined"
 
 # %%
 def get_best_ckpt(length: str, frame: str, fold: str):
 
-    ckpt_path = '/workspace/Walk_Video_PyTorch/logs/resnet/'
-    version = '516_1_8'
+    ckpt_path = '/workspace/logs/resnet/test/'
+    version = 'test_save_k_resnet_depth50'
     ckpt_path_list = os.listdir(ckpt_path)
+    #print("check_point:", ckpt_path_list)
     ckpt_path_list.sort()
 
     final_ckpt_list = [] 
@@ -99,7 +100,8 @@ def get_best_ckpt(length: str, frame: str, fold: str):
             ckpt = name
 
     ckpt = os.path.join(ckpt_path, ckpt, fold, 'checkpoints')
-    
+    print("check_point:", ckpt)
+
     Acc = 0.0
 
     ckpt_list = os.listdir(ckpt)
@@ -318,7 +320,7 @@ from torchvision.utils import make_grid
 # prepare the mdoel 
 length = '1'
 frame = '8'
-fold = 'flod1'
+fold = 'fold1'
 
 ckpt_path = get_best_ckpt(length, frame, fold)
 

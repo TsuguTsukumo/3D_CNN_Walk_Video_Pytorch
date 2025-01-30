@@ -2,9 +2,9 @@ import os
 import shutil
 
 # 元のデータセットディレクトリ
-input_dir = '/workspace/data/data/Cross_Validation/ex_20250116_2nd'
+input_dir = '/workspace/data/Cross_Validation/ex_20250116_lat'
 
-output_dir = '/workspace/data/data/Cross_Validation/ex_20250116_organized_2nd'
+output_dir = '/workspace/data/Cross_Validation/ex_20250116_lat_organized'
 
 # 新しいディレクトリ構造を作成
 def create_new_structure():
